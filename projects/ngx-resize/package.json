@@ -1,6 +1,22 @@
 {
     "name": "ngx-resize",
     "version": "1.0.0",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/nartc/ngx-resize"
+    },
+    "author": {
+        "name": "Chau Tran",
+        "email": "nartc7789@gmail.com",
+        "url": "https://nartc.me"
+    },
+    "description": "NgxResize Service",
+    "keywords": [
+        "typescript",
+        "resize observer",
+        "angular"
+    ],
+    "license": "MIT",
     "peerDependencies": {
         "@angular/common": "^14.0.0 || ^15.0.0",
         "@angular/core": "^14.0.0 || ^15.0.0"

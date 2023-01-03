@@ -30,6 +30,7 @@ export interface NgxResizeOptions {
     debounce: number | { scroll: number; resize: number };
     scroll: boolean;
     offsetSize: boolean;
+    emitInZone: boolean;
 }
 
 export const defaultResizeOptions: NgxResizeOptions = {
@@ -37,6 +38,7 @@ export const defaultResizeOptions: NgxResizeOptions = {
     scroll: false,
     offsetSize: false,
     debounce: { scroll: 50, resize: 0 },
+    emitInZone: true,
 };
 
 export const NGX_RESIZE_OPTIONS = new InjectionToken<NgxResizeOptions>(
@@ -125,7 +127,7 @@ export class NgxResize implements OnInit, OnDestroy {
 
 // return ResizeResult observable
 function createResizeStream(
-    { debounce, scroll, offsetSize, box }: NgxResizeOptions,
+    { debounce, scroll, offsetSize, box, emitInZone }: NgxResizeOptions,
     nativeElement: HTMLElement,
     document: Document,
     zone: NgZone
@@ -192,11 +194,19 @@ function createResizeStream(
                 }
 
                 Object.freeze(size);
-                subscriber.next({
+                const result = {
                     entries,
                     dpr: window.devicePixelRatio,
                     ...size,
-                });
+                };
+
+                if (emitInZone) {
+                    zone.run(() => {
+                        subscriber.next(result);
+                    });
+                } else {
+                    subscriber.next(result);
+                }
 
                 if (!areBoundsEqual(lastBounds || {}, size)) {
                     lastBounds = size;
