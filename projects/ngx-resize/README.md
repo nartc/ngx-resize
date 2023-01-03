@@ -1,24 +1,94 @@
 # NgxResize
 
-This library was generated with [Angular CLI](https://github.com/angular/angular-cli) version 15.0.0.
+A service that emits changes of a DOM container on `resize` by utilizing [Resize Observer](https://developer.mozilla.org/en-US/docs/Web/API/ResizeObserver)
 
-## Code scaffolding
+## Installation
 
-Run `ng generate component component-name --project ngx-resize` to generate a new component. You can also use `ng generate directive|pipe|service|class|guard|interface|enum|module --project ngx-resize`.
-> Note: Don't forget to add `--project ngx-resize` or else it will be added to the default project in your `angular.json` file. 
+```shell
+npm install ngx-resize
+```
 
-## Build
+## Usage
 
-Run `ng build ngx-resize` to build the project. The build artifacts will be stored in the `dist/` directory.
+There are two approaches of using `ngx-resize`. Both approaches results an `Observable<NgxResizeResult>`
 
-## Publishing
+```ts
+export interface NgxResizeResult {
+    readonly entries: ReadonlyArray<ResizeObserverEntry>;
+    readonly x: number;
+    readonly y: number;
+    readonly width: number;
+    readonly height: number;
+    readonly top: number;
+    readonly right: number;
+    readonly bottom: number;
+    readonly left: number;
+    readonly dpr: number;
+}
+```
 
-After building your library with `ng build ngx-resize`, go to the dist folder `cd dist/ngx-resize` and run `npm publish`.
+### `injectNgxResize()`
 
-## Running unit tests
+If you're on Angular 14+ and are using `inject()` for **Dependency Injection**, you can use `injectNgxResize()` to grab the `Observable<NgxResizeResult>`
 
-Run `ng test ngx-resize` to execute the unit tests via [Karma](https://karma-runner.github.io).
+```ts
+@Component({})
+export class SomeComponent {
+    readonly resizeResult$ = injectNgxResize(); // Observable<NgxResizeResult>
+}
+```
 
-## Further help
+`injectNgxResize()` accepts a `Partial<NgxResizeOptions>` and will be merged with the default global options.
 
-To get more help on the Angular CLI use `ng help` or go check out the [Angular CLI Overview and Command Reference](https://angular.io/cli) page.
+```ts
+export interface NgxResizeOptions {
+    box: ResizeObserverBoxOptions;
+    debounce: number | { scroll: number; resize: number };
+    scroll: boolean;
+    offsetSize: boolean;
+}
+
+export const defaultResizeOptions: NgxResizeOptions = {
+    box: 'content-box',
+    scroll: false,
+    offsetSize: false,
+    debounce: { scroll: 50, resize: 0 },
+};
+```
+
+#### With `Output`
+
+Instead of getting the `Observable<NgxResizeResult>`, you can assign `injectNgxResize()` to an `Output` directly
+
+```ts
+@Component({})
+export class SomeComponent {
+    @Output() resize = injectNgxResize(); // resize emits everytime NgxResize emits
+}
+```
+
+```html
+<some-component (resize)="onResize($event)"></some-component>
+<!-- $event is of type NgxResizeResult -->
+```
+
+### `NgxResize`
+
+If you're not using `inject()`, you can use the `NgxResize` directive
+
+```html
+<some-component (ngxResize)="onResize($event)"></some-component>
+<some-component
+    (ngxResize)="onResize($event)"
+    [ngxResizeOptions]="optionalOptions"
+></some-component>
+```
+
+## Provide global `NgxResizeOptions`
+
+You can use `provideNgxResizeOptions()` to provide global options for a specific Component tree. If you call `provideNgxResizeOptions()` in `bootstrapApplication()` (for Standalone) and `AppModule` (for NgModule)
+then the options is truly global.
+
+## Contributions
+
+All contributions of any kind are welcome.
