@@ -42,10 +42,18 @@ export class SomeComponent {
 
 ```ts
 export interface NgxResizeOptions {
+    /* "box" options that is passed in new ResizeObserver */
     box: ResizeObserverBoxOptions;
+    /* time in ms to debounce the events; single number for resize; can also support scroll and resize separately */
     debounce: number | { scroll: number; resize: number };
+    /* whether to observe resize on scroll */
     scroll: boolean;
+    /* use offset size instead */
     offsetSize: boolean;
+    /* emit in NgZone or not. Default to "true" */
+    emitInZone: boolean;
+    /* emit the initial DOMRect of nativeElement. Default to "false" */
+    emitInitialResult: boolean;
 }
 
 export const defaultResizeOptions: NgxResizeOptions = {
@@ -53,6 +61,8 @@ export const defaultResizeOptions: NgxResizeOptions = {
     scroll: false,
     offsetSize: false,
     debounce: { scroll: 50, resize: 0 },
+    emitInZone: true,
+    emitInitialResult: false,
 };
 ```
 

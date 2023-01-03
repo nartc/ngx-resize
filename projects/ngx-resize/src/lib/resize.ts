@@ -31,6 +31,7 @@ export interface NgxResizeOptions {
     scroll: boolean;
     offsetSize: boolean;
     emitInZone: boolean;
+    emitInitialResult: boolean;
 }
 
 export const defaultResizeOptions: NgxResizeOptions = {
@@ -39,6 +40,7 @@ export const defaultResizeOptions: NgxResizeOptions = {
     offsetSize: false,
     debounce: { scroll: 50, resize: 0 },
     emitInZone: true,
+    emitInitialResult: false,
 };
 
 export const NGX_RESIZE_OPTIONS = new InjectionToken<NgxResizeOptions>(
@@ -127,7 +129,14 @@ export class NgxResize implements OnInit, OnDestroy {
 
 // return ResizeResult observable
 function createResizeStream(
-    { debounce, scroll, offsetSize, box, emitInZone }: NgxResizeOptions,
+    {
+        debounce,
+        scroll,
+        offsetSize,
+        box,
+        emitInZone,
+        emitInitialResult,
+    }: NgxResizeOptions,
     nativeElement: HTMLElement,
     document: Document,
     zone: NgZone
@@ -172,33 +181,32 @@ function createResizeStream(
             return;
         }
 
+        if (emitInitialResult) {
+            const [result] = calculateResult(
+                nativeElement,
+                window,
+                offsetSize,
+                []
+            );
+
+            if (emitInZone) {
+                zone.run(() => {
+                    subscriber.next(result);
+                });
+            } else {
+                subscriber.next(result);
+            }
+        }
+
         zone.runOutsideAngular(() => {
             const callback = (entries: ResizeObserverEntry[]) => {
                 lastEntries = entries;
-                const { left, top, width, height, bottom, right, x, y } =
-                    nativeElement.getBoundingClientRect();
-                const size = {
-                    left,
-                    top,
-                    width,
-                    height,
-                    bottom,
-                    right,
-                    x,
-                    y,
-                };
-
-                if (nativeElement instanceof HTMLElement && offsetSize) {
-                    size.height = nativeElement.offsetHeight;
-                    size.width = nativeElement.offsetWidth;
-                }
-
-                Object.freeze(size);
-                const result = {
-                    entries,
-                    dpr: window.devicePixelRatio,
-                    ...size,
-                };
+                const [result, size] = calculateResult(
+                    nativeElement,
+                    window,
+                    offsetSize,
+                    entries
+                );
 
                 if (emitInZone) {
                     zone.run(() => {
@@ -259,6 +267,41 @@ function createResizeStream(
             resetOnError: true,
         })
     );
+}
+
+function calculateResult(
+    nativeElement: HTMLElement,
+    window: Window,
+    offsetSize: boolean,
+    entries: ResizeObserverEntry[]
+): [NgxResizeResult, Omit<DOMRect, 'toJSON'>] {
+    const { left, top, width, height, bottom, right, x, y } =
+        nativeElement.getBoundingClientRect();
+    const size = {
+        left,
+        top,
+        width,
+        height,
+        bottom,
+        right,
+        x,
+        y,
+    };
+
+    if (nativeElement instanceof HTMLElement && offsetSize) {
+        size.height = nativeElement.offsetHeight;
+        size.width = nativeElement.offsetWidth;
+    }
+
+    Object.freeze(size);
+    return [
+        {
+            entries,
+            dpr: window.devicePixelRatio,
+            ...size,
+        },
+        size,
+    ];
 }
 
 // Returns a list of scroll offsets
