@@ -308,7 +308,7 @@ function calculateResult(
 // Returns a list of scroll offsets
 function findScrollContainers(
     element: HTMLOrSVGElement | null,
-    window: Window,
+    window: Window | null,
     documentBody: HTMLElement
 ): HTMLOrSVGElement[] {
     const result: HTMLOrSVGElement[] = [];
