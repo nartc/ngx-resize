@@ -151,6 +151,7 @@ function createResizeStream(
     const torndown$ = new ReplaySubject<void>();
     const scrollContainers: HTMLOrSVGElement[] | null = findScrollContainers(
         nativeElement,
+        window,
         document.body
     );
 
@@ -307,10 +308,11 @@ function calculateResult(
 // Returns a list of scroll offsets
 function findScrollContainers(
     element: HTMLOrSVGElement | null,
+    window: Window,
     documentBody: HTMLElement
 ): HTMLOrSVGElement[] {
     const result: HTMLOrSVGElement[] = [];
-    if (!element || element === documentBody) return result;
+    if (!element || !window || element === documentBody) return result;
     const { overflow, overflowX, overflowY } = window.getComputedStyle(
         element as HTMLElement
     );
@@ -324,6 +326,7 @@ function findScrollContainers(
         ...result,
         ...findScrollContainers(
             (element as HTMLElement).parentElement,
+            window,
             documentBody
         ),
     ];
