@@ -94,6 +94,24 @@ If you're not using `inject()`, you can use the `NgxResize` directive
 ></some-component>
 ```
 
+#### With `hostDirectives`
+
+With Angular 15, you can also use `NgxResize` as a `hostDirectives` and expose `ngxResize` Output
+
+```ts
+@Component({
+    hostDirectives: [{ directive: NgxResize, outputs: ['ngxResize'] }],
+})
+export class SomeComponent {
+    @HostListener('ngxResize', ['$event'])
+    onResize(event: NgxResizeResult) {
+        // listen for resize event from NgxResize
+    }
+}
+```
+
+> Credit to @denisyilmaz for this usage
+
 ## Provide global `NgxResizeOptions`
 
 You can use `provideNgxResizeOptions()` to provide global options for a specific Component tree. If you call `provideNgxResizeOptions()` in `bootstrapApplication()` (for Standalone) and `AppModule` (for NgModule)
