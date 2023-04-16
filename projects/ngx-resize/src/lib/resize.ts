@@ -67,9 +67,7 @@ export function injectNgxResize(options: Partial<NgxResizeOptions> = {}): Observ
     const { nativeElement } = inject(ElementRef) as ElementRef<HTMLElement>;
     const zone = inject(NgZone);
     const document = inject(DOCUMENT);
-
-    const globalOptions = inject(NGX_RESIZE_OPTIONS);
-    const mergedOptions = { ...globalOptions, ...options };
+    const mergedOptions = { ...inject(NGX_RESIZE_OPTIONS), ...options };
 
     return createResizeStream(mergedOptions, nativeElement, document, zone);
 }
@@ -84,7 +82,7 @@ export class NgxResize implements OnInit, OnDestroy {
         private readonly zone: NgZone,
         @Inject(DOCUMENT) private readonly document: Document,
         @Inject(NGX_RESIZE_OPTIONS) private readonly resizeOptions: NgxResizeOptions
-    ) { }
+    ) {}
 
     private sub?: Subscription;
 
