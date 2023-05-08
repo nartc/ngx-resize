@@ -8,30 +8,30 @@ import {
     InjectionToken,
     Input,
     NgZone,
-    OnDestroy,
-    OnInit,
     Output,
+    type OnDestroy,
+    type OnInit,
 } from '@angular/core';
 import {
     debounceTime,
     fromEvent,
-    MonoTypeOperatorFunction,
     Observable,
     pipe,
     ReplaySubject,
     share,
-    Subscription,
     takeUntil,
+    type MonoTypeOperatorFunction,
+    type Subscription,
 } from 'rxjs';
 
-export interface NgxResizeOptions {
+export type NgxResizeOptions = {
     box: ResizeObserverBoxOptions;
     debounce: number | { scroll: number; resize: number };
     scroll: boolean;
     offsetSize: boolean;
     emitInZone: boolean;
     emitInitialResult: boolean;
-}
+};
 
 export const defaultResizeOptions: NgxResizeOptions = {
     box: 'content-box',
@@ -50,7 +50,7 @@ export function provideNgxResizeOptions(options: Partial<NgxResizeOptions> = {})
     return { provide: NGX_RESIZE_OPTIONS, useValue: { ...defaultResizeOptions, ...options } };
 }
 
-export interface NgxResizeResult {
+export type NgxResizeResult = {
     readonly entries: ReadonlyArray<ResizeObserverEntry>;
     readonly x: number;
     readonly y: number;
@@ -61,7 +61,7 @@ export interface NgxResizeResult {
     readonly bottom: number;
     readonly left: number;
     readonly dpr: number;
-}
+};
 
 export function injectNgxResize(options: Partial<NgxResizeOptions> = {}): Observable<NgxResizeResult> {
     const { nativeElement } = inject(ElementRef) as ElementRef<HTMLElement>;
@@ -131,12 +131,13 @@ function createResizeStream(
             return;
         }
 
-        if (emitInitialResult) {
-            const [result] = calculateResult(nativeElement, window, offsetSize, []);
-            subscriber.next(result);
-        }
-
         zone.runOutsideAngular(() => {
+            if (emitInitialResult) {
+                const [result] = calculateResult(nativeElement, window, offsetSize, []);
+                if (emitInZone) zone.run(() => void subscriber.next(result));
+                else subscriber.next(result);
+            }
+
             const callback = (entries: ResizeObserverEntry[]) => {
                 lastEntries = entries;
                 const [result, size] = calculateResult(nativeElement, window, offsetSize, entries);
